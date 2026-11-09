@@ -1,0 +1,35 @@
+{
+    "name": "limbda",
+    "version": "0.0.1",
+    "description": "Collection of JavaScript basics",
+    "type": "module",
+    "exports": {
+        "./svg": "./src/svg/index.ts",
+        "./avis": "./src/avis/index.ts",
+        "./bindings": "./src/bindings/index.ts",
+        "./server/*": "./src/server/*.ts",
+        "./utils/*": "./src/utils/*.ts"
+    },
+    "files": [
+        "src"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "server": "tsx ./src/server/test.ts",
+        "test": "concurrently --names \"server,client\" --prefix-colors \"blue,magenta\" \"npm run dev\" \"npm run dev:client\""
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/node": "^26.6.6",
+        "concurrently": "^10.0.6",
+        "tsx": "^4.23.15",
+        "typescript": "^7.0.2"
+    },
+    "dependencies": {
+        "cors": "^2.8.6",
+        "express": "^5.3.0",
+        "mysql2": "^3.24.6"
+    }
+}
