@@ -8,10 +8,11 @@ interface Thresholds {
 }
 
 export class BindDragAnimation {
-    moveThreshold: number
+    thresholdPercent: number
     movement: boolean
     debug: boolean
     max: number
+    animateCircle: boolean
     toFavscore = 1
     visualizer!: HTMLDivElement
     thresholds: Thresholds
@@ -21,11 +22,11 @@ export class BindDragAnimation {
     bottom?
 
     constructor(
-        opts?: { moveThreshold?: number; movement?: boolean; debug?: boolean; thresholds?: Thresholds; max: number },
-        callbacks?: { left?: () => void; right?: () => void; top?: () => void; bottom?: (score: number, released: boolean) => void }
+        opts?: { moveThreshold?: number; movement?: boolean; debug?: boolean; thresholds?: Thresholds; max?: number; animateCircle?: boolean },
+        callbacks?: { left?: () => void; right?: () => void; top?: () => void; bottom?: (score: number, released: boolean) => void },
     ) {
-        const thresholdPercent = opts?.moveThreshold ?? 0.02
-        this.moveThreshold = document.body.clientWidth * (thresholdPercent / 100 / 2)
+        this.animateCircle = opts?.animateCircle ?? false
+        this.thresholdPercent = opts?.moveThreshold ?? 0.02
         this.movement = opts?.movement ?? false
         this.debug = opts?.debug ?? true
         this.max = opts?.max ?? 20
@@ -34,7 +35,7 @@ export class BindDragAnimation {
             left: 1.0,
             right: 1.0,
             top: 1.0,
-            bottom: 1.0
+            bottom: 1.0,
         }
 
         Object.assign(this.thresholds, opts?.thresholds)
@@ -50,6 +51,7 @@ export class BindDragAnimation {
     }
 
     bind = (elem: HTMLElement) => {
+        const moveThreshold = document.body.clientWidth * (this.thresholdPercent / 100 / 2)
         let x = 0,
             y = 0
         let sx: number, sy: number, bx: number, by: number
@@ -82,7 +84,7 @@ export class BindDragAnimation {
                 // Keep it hidden until the first mouse movement
                 display: 'none',
                 // Ensures it sits above standard page content
-                zIndex: '99999'
+                zIndex: '99999',
             })
 
             this.visualizer.innerHTML = `
@@ -96,11 +98,13 @@ export class BindDragAnimation {
 
             document.body.appendChild(this.visualizer)
         }
-        let id: number
+
+        let circleId: number
+
         function countdown() {
-            id = setTimeout(() => {
+            circleId = setTimeout(() => {
                 circle.style.strokeDashoffset = '0'
-                id = setTimeout(() => {}, 500)
+                circleId = setTimeout(() => {}, 500)
             }, 100)
         }
 
@@ -110,7 +114,7 @@ export class BindDragAnimation {
 
         const moveVisualizer = (x: number, y: number) => {
             if (!this.visualizer) return
-            const move = this.moveThreshold
+            const move = moveThreshold
             const leftT = this.thresholds.left * move
             const rightT = this.thresholds.right * move
             const topT = this.thresholds.top * move
@@ -124,7 +128,7 @@ export class BindDragAnimation {
             this.visualizer.style.top = `${y}px`
             this.visualizer.style.width = `${leftT + rightT}px`
             this.visualizer.style.height = `${topT + bottomT}px`
-            this.visualizer.style.transform = `translate(-${this.moveThreshold * this.thresholds.left}px, -${this.moveThreshold * this.thresholds.top}px)`
+            this.visualizer.style.transform = `translate(-${moveThreshold * this.thresholds.left}px, -${moveThreshold * this.thresholds.top}px)`
         }
 
         function resetElem() {
@@ -134,14 +138,17 @@ export class BindDragAnimation {
         }
 
         let special = false
+
         const end = (e: PointerEvent) => {
             if (elem.hasPointerCapture(e.pointerId)) elem.releasePointerCapture(e.pointerId)
             if (special) {
                 special = false
                 this.bottom?.(this.toFavscore, true)
             }
-            clearTimeout(id)
-            circle.style.strokeDashoffset = '100'
+            if (this.animateCircle) {
+                clearTimeout(circleId)
+                circle.style.strokeDashoffset = '100'
+            }
             elem.style.cursor = 'grab'
         }
 
@@ -153,7 +160,9 @@ export class BindDragAnimation {
             moveVisualizer(sx, sy)
             bx = x
             by = y
-            countdown()
+            if (this.animateCircle) {
+                countdown()
+            }
             elem.style.cursor = 'grabbing'
         })
 
@@ -171,19 +180,19 @@ export class BindDragAnimation {
             let activated = false
             if (!special) {
                 switch (true) {
-                    case dx < -(this.moveThreshold * this.thresholds.left):
+                    case dx < -(moveThreshold * this.thresholds.left):
                         this.left?.()
                         activated = true
                         break
-                    case dx > this.moveThreshold * this.thresholds.right:
+                    case dx > moveThreshold * this.thresholds.right:
                         this.right?.()
                         activated = true
                         break
-                    case dy < -(this.moveThreshold * this.thresholds.top):
+                    case dy < -(moveThreshold * this.thresholds.top):
                         this.top?.()
                         activated = true
                         break
-                    case dy > this.moveThreshold * this.thresholds.bottom:
+                    case dy > moveThreshold * this.thresholds.bottom:
                         special = true
                         break
                 }
