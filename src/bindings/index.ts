@@ -56,11 +56,20 @@ export class BindDragAnimation {
             y = 0
         let sx: number, sy: number, bx: number, by: number
         const moveAmp = 1.3
-        elem.style.touchAction = 'none'
+        const calculated = {
+            left: -(moveThreshold * this.thresholds.left),
+            right: moveThreshold * this.thresholds.right,
+            top: -(moveThreshold * this.thresholds.top),
+            bottom: moveThreshold * this.thresholds.bottom,
+        }
+
+        const lineVisualizer = document.createElement('div')
+        lineVisualizer.id = 'line-visualizer'
 
         let line1
         let line2
 
+        elem.style.touchAction = 'none'
         if (this.debug) {
             this.visualizer = document.createElement('div')
             this.visualizer.id = 'live-mouse-tracker'
@@ -180,19 +189,19 @@ export class BindDragAnimation {
             let activated = false
             if (!special) {
                 switch (true) {
-                    case dx < -(moveThreshold * this.thresholds.left):
+                    case dx < calculated.left:
                         this.left?.()
                         activated = true
                         break
-                    case dx > moveThreshold * this.thresholds.right:
+                    case dx > calculated.right:
                         this.right?.()
                         activated = true
                         break
-                    case dy < -(moveThreshold * this.thresholds.top):
+                    case dy < calculated.top:
                         this.top?.()
                         activated = true
                         break
-                    case dy > moveThreshold * this.thresholds.bottom:
+                    case dy > calculated.bottom:
                         special = true
                         break
                 }
