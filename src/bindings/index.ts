@@ -63,9 +63,6 @@ export class BindDragAnimation {
             bottom: moveThreshold * this.thresholds.bottom,
         }
 
-        const lineVisualizer = document.createElement('div')
-        lineVisualizer.id = 'line-visualizer'
-
         let line1
         let line2
 
@@ -107,6 +104,9 @@ export class BindDragAnimation {
 
             document.body.appendChild(this.visualizer)
         }
+
+        const lineVisualizer = document.createElement('div')
+        lineVisualizer.id = 'line-visualizer'
 
         let circleId: number
 
